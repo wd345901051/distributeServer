@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option go_package = "./;pb";
+
+package server;
+
+message KeepAliveReq{
+}
+message KeepAliveRsp{
+}
+
+service Server{
+  rpc KeepAlive(KeepAliveReq)returns(KeepAliveRsp){}
+}
