@@ -19,7 +19,7 @@ type Option struct {
 }
 
 func NewOptions(opts []*Option) *Options {
-	o := &Options{KeepAliveTime: time.Second * 20, MaxTryKeepAlive: 3}
+	o := &Options{KeepAliveTime: time.Second * 5, MaxTryKeepAlive: 3, MaxKeepAliveTime: 3}
 	o.Apply(opts)
 	return o
 }

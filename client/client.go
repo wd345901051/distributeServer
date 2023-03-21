@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/wd345901051/distributeServer/server/pb"
 	"google.golang.org/grpc"
@@ -20,29 +21,18 @@ func NewClient(addr string, rpc *grpc.ClientConn) *Client {
 	}
 }
 
-func (c *Client) KeepAlive(maxTryKeepAlive int) error {
+func (c *Client) KeepAlive(maxTryKeepAlive int, MaxKeepAliveTime time.Duration) error {
+	if maxTryKeepAlive == 0 {
+		return errors.New("Out Of MaxTryKeepAlive !")
+	}
 	rpcc := pb.NewServerClient(c.RPCConn)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	ctx, cancel := context.WithTimeout(context.Background(), MaxKeepAliveTime)
 	defer cancel()
 	_, err := rpcc.KeepAlive(ctx, &pb.KeepAliveReq{})
 	if err != nil {
-		err = c.tryKeepAlive(maxTryKeepAlive)
-		return err
+		// err try
+		return c.KeepAlive(maxTryKeepAlive-1, MaxKeepAliveTime)
 	}
 	fmt.Println(c.Addr, "yes")
-	return nil
-}
-func (c *Client) tryKeepAlive(maxTryKeepAlive int) error {
-	for i := 0; i < maxTryKeepAlive; i++ {
-		time.Sleep(time.Millisecond)
-		rpcc := pb.NewServerClient(c.RPCConn)
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-		_, err := rpcc.KeepAlive(ctx, &pb.KeepAliveReq{})
-		if err != nil {
-			err = c.tryKeepAlive(maxTryKeepAlive)
-			return err
-		}
-		cancel()
-	}
 	return nil
 }
